@@ -207,9 +207,12 @@ html,body{height:100%;background:var(--d0);color:var(--t1);font-family:'DM Sans'
     <div class="pbar"><div class="pfill" id="d-prog" style="width:0%"></div></div>
   </div>
 
-  <div style="padding:0 16px;margin-bottom:14px">
-    <button id="btn-cargar-cuota" style="width:100%;padding:14px;border-radius:14px;border:none;background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.25);color:var(--y);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer">
-      📋 Cargar cuota del mes a todos
+  <div style="padding:0 16px;margin-bottom:14px;display:flex;gap:8px">
+    <button id="btn-cargar-cuota" style="flex:1;padding:14px;border-radius:14px;border:none;background:rgba(255,215,0,.12);border:1px solid rgba(255,215,0,.25);color:var(--y);font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer">
+      📋 Cargar cuota
+    </button>
+    <button id="btn-gestionar-jug" style="flex:1;padding:14px;border-radius:14px;border:none;background:rgba(47,128,237,.12);border:1px solid rgba(47,128,237,.25);color:#5ba4ff;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer">
+      👥 Jugadores
     </button>
   </div>
   <div class="sec">Deudores destacados</div>
@@ -725,6 +728,67 @@ function renderVistaJugador(nombre){
   btnNuevoEve.textContent='+ Crear nuevo evento';
   btnNuevoEve.addEventListener('click',()=>abrirNuevoEventoJugador(nombre));
   body.appendChild(btnNuevoEve);
+}
+
+// ── GESTIONAR JUGADORES ────────────────────────────────────
+function gestionarJugadores(){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;display:flex;align-items:flex-end;backdrop-filter:blur(4px)';
+  document.body.appendChild(ov);
+
+  function renderPanel(){
+    ov.innerHTML='<div style="background:var(--d1);border-radius:26px 26px 0 0;padding:22px 18px 40px;width:100%;max-height:88dvh;overflow-y:auto">'+
+      '<div style="width:34px;height:4px;background:var(--br);border-radius:99px;margin:0 auto 18px"></div>'+
+      '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:800;margin-bottom:16px">👥 Gestionar jugadores</div>'+
+
+      // Add player form
+      '<div style="display:flex;gap:8px;margin-bottom:16px">'+
+        '<input id="nuevo-jug-nombre" type="text" class="fi" placeholder="Nombre del jugador" style="flex:1;margin:0" maxlength="20">'+
+        '<button id="btn-agregar-jug" style="padding:13px 16px;border-radius:13px;border:none;background:var(--g);color:#000;font-family:Syne,sans-serif;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0">+ Agregar</button>'+
+      '</div>'+
+
+      '<div style="font-size:10px;font-weight:700;color:var(--t2);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">LISTA ('+JUG.length+')</div>'+
+      '<div id="jug-panel-list"></div>'+
+      '<button class="btn s" id="jug-panel-close" style="margin-top:12px">Cerrar</button>'+
+    '</div>';
+
+    // Render player list
+    const listCont=document.getElementById('jug-panel-list');
+    JUG.forEach((j,idx)=>{
+      const row=document.createElement('div');
+      row.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--br)';
+      row.innerHTML=
+        '<div style="display:flex;align-items:center;gap:10px">'+
+          '<div style="width:30px;height:30px;border-radius:9px;background:#'+COLS[idx%COLS.length]+'22;color:#'+COLS[idx%COLS.length]+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800">'+ini(j.nombre)+'</div>'+
+          '<span style="font-size:14px;font-weight:500">'+j.nombre+'</span>'+
+        '</div>'+
+        '<button style="background:rgba(255,71,87,.1);color:var(--r);border:none;border-radius:8px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer" data-idx="'+idx+'">✕ Quitar</button>';
+      row.querySelector('button').addEventListener('click',function(){
+        const i=parseInt(this.dataset.idx);
+        const nombre=JUG[i].nombre;
+        if(!confirm('¿Quitar a '+nombre+' de la lista?')) return;
+        JUG.splice(i,1);
+        renderDash(); renderJug();
+        renderPanel();
+        toast(nombre+' eliminado de la lista');
+      });
+      listCont.appendChild(row);
+    });
+
+    // Wire buttons
+    document.getElementById('jug-panel-close').addEventListener('click',()=>ov.remove());
+    document.getElementById('btn-agregar-jug').addEventListener('click',()=>{
+      const nombre=document.getElementById('nuevo-jug-nombre').value.trim();
+      if(!nombre){toast('Ingresá un nombre');return;}
+      if(JUG.find(j=>j.nombre===nombre)){toast('Ya existe ese jugador');return;}
+      JUG.push({nombre,pagado:0});
+      renderDash(); renderJug();
+      renderPanel();
+      toast('✅ '+nombre+' agregado');
+    });
+  }
+
+  renderPanel();
 }
 
 // ── CARGAR CUOTA MES ───────────────────────────────────────
@@ -1643,6 +1707,7 @@ document.getElementById('btn-cancelar').addEventListener('click',cerrarModal);
 document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)cerrarModal();});
 document.getElementById('btn-edit-saldo').addEventListener('click',editarSaldo);
 document.getElementById('btn-cargar-cuota').addEventListener('click',cargarCuotaMes);
+document.getElementById('btn-gestionar-jug').addEventListener('click',gestionarJugadores);
 document.getElementById('btn-edit-banco').addEventListener('click',editarBanco);
 document.getElementById('nav-dash').addEventListener('click',()=>goTo('dash'));
 document.getElementById('nav-jug').addEventListener('click',()=>goTo('jug'));

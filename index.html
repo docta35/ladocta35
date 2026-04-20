@@ -718,6 +718,13 @@ function renderVistaJugador(nombre){
     });
   }
   body.appendChild(card2);
+  // Botón crear evento para jugadores
+  const btnNuevoEve=document.createElement('button');
+  btnNuevoEve.className='btn p';
+  btnNuevoEve.style.cssText='margin-top:8px';
+  btnNuevoEve.textContent='+ Crear nuevo evento';
+  btnNuevoEve.addEventListener('click',()=>abrirNuevoEventoJugador(nombre));
+  body.appendChild(btnNuevoEve);
 }
 
 // ── CARGAR CUOTA MES ───────────────────────────────────────
